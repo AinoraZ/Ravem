@@ -13,7 +13,7 @@ This is a clone of two seperate parts of the same Ravem Internet drone made for 
 This is the web page used to control the Internet drone.
 
 Supported functionality:
-* Adding / Removing / Reordering waypoints (Clicking on map/Setting altitute)
+* Adding / Removing / Reordering waypoints (Clicking on map / Setting altitude)
 * Mission Land / Return To Launch
 * Force Land / Return To Launch
 * Changing Server / Drone settings
