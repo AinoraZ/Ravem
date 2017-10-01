@@ -3,23 +3,23 @@
 This is a clone of two seperate parts of the same Ravem Internet drone made for Barclays "Tech Academy" contest.
 
 ## This project was made in collaboration with:
-    * https://github.com/AinoraZ
-    * https://github.com/Dohxis
-    * https://github.com/Luksys3
-    * https://github.com/vodpox
+* https://github.com/AinoraZ
+* https://github.com/Dohxis
+* https://github.com/Luksys3
+* https://github.com/vodpox
 
 # Ravem-Web
 
 This is the web page used to control the Internet drone.
 
 Supported functionality:
-    * Adding / Removing / Reordering waypoints (Clicking on map/Setting altitute)
-    * Mission Land / Return To Launch
-    * Force Land / Return To Launch
-    * Changing Server / Drone settings
-    * Setting ROI
-    * Crucial Drone data displayed
-    * Live video feed from drone
+* Adding / Removing / Reordering waypoints (Clicking on map/Setting altitute)
+* Mission Land / Return To Launch
+* Force Land / Return To Launch
+* Changing Server / Drone settings
+* Setting ROI
+* Crucial Drone data displayed
+* Live video feed from drone
 
 ## Original Project
 https://github.com/Luksys3/drone-web
