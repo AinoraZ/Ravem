@@ -1,0 +1,8 @@
+until ping -c1 8.8.8.8 &>/dev/null; do :; done
+
+chdir () {
+  cd /home/pi/APM-Control
+}
+
+chdir
+python ./APM-Control/src/main.py

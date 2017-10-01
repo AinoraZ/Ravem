@@ -1,0 +1,9 @@
+Flask==0.11.1	
+Jinja2==2.8	
+dronekit==2.9.0	
+eventlet==0.20.1	
+pymavlink==2.0.6
+pyserial==3.2.1	
+python-engineio==1.2.1	
+python-socketio==1.6.3	
+requests==2.10.0

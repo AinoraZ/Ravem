@@ -1,0 +1,211 @@
+Control types:
+  direct -- directly control the vehicle and/or changes it's values.
+  mission -- uses the APM inbuilt mission planning to create missions.
+  limited -- control is limited by various failsafe factors and has certain completion requirements.
+
+Drone control:
+  Mission control:
+    download_missions():
+      Control type: direct
+      SIO: no link
+      Arguments: None
+      Downloads the current mission plan from the APM controller
+    clear_missions():
+      Control type: direct
+      SIO: 'clear_missions'
+      Arguments: None
+      Clears current mission plan in the APM controller
+    mission_upload():
+      Control type: direct
+      SIO: no link
+      Arguments: None
+      Uploads the current mission plan
+    Mission planning:
+      All the missions are passed through 'missions' SIO in format:
+        Mission[
+          {
+            name: ''
+            lat: ''
+            lng: ''
+            alt: ''
+          }
+        ]
+      Missions which do not require a certain argument can be left blank
+
+      mission_fly_to(lat, lon, alt):
+        Control type: mission
+        name: 'fly_to'
+        Arguments: Waypoint Latitude, Longitude, Altitude
+        Adds a way point to fly to in the mission plan
+      mission_RTL():
+        Control type: mission
+        name: 'rtl'
+        Arguments: None
+        Adds a return to launch mission
+      mission_land():
+        Control type: mission
+        name: 'land'
+        Arguments: None
+        Adds a mission to land at current location
+      mission_change_alt(alt):
+        Control type: mission
+        name: 'change_alt'
+        Arguments: Wanted Altitude
+        Adds a mission to change the altitude of the vehicle in current location
+      arm_and_takeoff(alt):
+        Control type: direct
+        name: 'takeoff'
+        Arguments: Wanted Altitude
+        Arms throttle and takes off.
+        Guided mode is needed for this to work. The mode is switched by the server or manually by RC
+        This is not part of the original APM missions, since takeoff mission is only available from APM 3.3
+        The vehicle will be blocked from receiving missions until this method completes or times out.
+    Direct control:
+      connect():
+        Control type: direct
+        SIO: 'vehicle_connect'
+        Arguments: None
+        Connects the vehicle through telemetry MAVlink (if there is no established connection)
+      disconnect():
+        Control type: direct
+        SIO: 'vehicle_disconnect'
+        Arguments: None
+        Closes the current connection (if there is one)
+      vehicle_auto():
+        Control type: direct
+        SIO: 'vehicle_auto'
+        Arguments: None
+        Changes vehicle mode to AUTO
+      vehicle_guided():
+        Control type: direct
+        SIO: 'vehicle_guided'
+        Arguments: None
+        Changes vehicle mode to GUIDED
+      emergency_disarm(): //APM 3.3 or later
+        Control type: direct
+        SIO: no link
+        Arguments: None
+        Disarms the motors midair
+      mission_set_home(lat=0, lon=0, alt=0)
+        Control type: direct
+        SIO: no link
+        Arguments: (OPTIONAL) Latitude, Longitude, Altitude
+        If no arguments passed, sets home to current location
+        If arguments are given, home is set to given location
+      force_RTL():
+        Control type: direct
+        SIO: 'force_rtl'
+        Arguments: None
+        Switches vehicle mode to Return To Launch (RTL). All missions are aborted.
+        Vehicle lands in launch location.
+      force_land():
+        Control type: direct
+        SIO: 'force_land'
+        Arguments: None
+        Switches vehicle mode to LAND. All missions are aborted.
+        Vehicle lands in current location.
+      force_loiter():
+        Control type: direct
+        SIO: 'force_loiter'
+        Switches vehicle mode to LOITER. All missions are aborted.
+        Vehicle loiters mid air.
+      set_airspeed(air_speed)
+        Control type: direct
+        SIO: 'set_airspeed'
+        Arguments: Wanted vehicle speed in air (Number)
+        Sets the vehicle speed to wanted speed.
+      arm():
+        Control type: limited
+        SIO: 'arm'
+        Arguments: None
+        Arms the vehicle.
+        The method depends on other factors and might not always succeed.
+        Factors: connected, guided mode on, configurable pre-arm check passed.
+      disarm():
+        Control type: direct
+        SIO: 'disarm'
+        Arguments: None
+        Disarms the vehicle
+    DEBUG:
+      remove_bad_status():
+        Control type: direct
+        SIO: 'remove_bad_status'
+        Arguments: None
+        Removes bad vehicle statuses:
+          Critical -- Disarm fail
+          Taking_off -- user 'mission' input block while taking off
+      arm_direct():
+        Control type: direct
+        SIO: 'arm_direct'
+        Arguments: None
+        Bypasses checks and arms the vehicle directly
+
+Drone data:
+  Listeners:
+    Automatic vehicle data listeners, which update every time something changes.
+    Normal case scenario -- every 0.2s
+
+    attitude_listener():
+      SIO: 'gyro'
+      Data: {'pitch': ..., 'yaw': ..., 'roll': ...}
+    frame_listener():
+      sio: 'location'
+      Data: {'lat' : ..., 'lng' : ..., 'alt' : ...}
+
+    #--This section will be updated--#
+
+Config:
+  PORT_NAME_LINUX = "/dev/ttyUSB0":
+    The default telemetry port for GNU/Linux.
+  PORT_NAME_WINDOWS = "COM3"
+    The default telemetry port for Windows.
+  PORT_NAME_OSX = "dev/cu.usbmodem1":
+    The default telemetry port for OSX.
+  DRONE_LOCAL = True:
+    LOCAL refers to a simulated vehicle. False for an actual drone.
+  DRONE_GPS_FIXER = 1:
+    GPS data fluctuates. Set the maximum accepted error.
+  ARM_RETRY_COUNT = 2:
+    The vehicle will not take off if the DRONE_GPS_FIXER is exceeded.
+    The vehicle will re-arm itself ARM_RETRY_COUNT times to try fix the gps.
+    Set to 0 to disable arm--disarm retry.
+  DRONE_HEARTBEAT = 10:
+    The connection between server and vehicle timeout time.
+    Normally, the connection should be instantaneous.
+  AUTO_ON = False:
+    Defines whether the vehicle should automatically switch to AUTO after take off.
+    AUTO is required for missions to run.
+    If this setting is off, AUTO will have to be switched manually in order to start a mission.
+  FAIL_COUNTERS = 15:
+    The amount of fails in the takeoff method.
+    This is a simple comparison to check if the vehicle is moving towards its location.
+    This check is done every 0.5 second.
+    Takeoff is not part of the APM missions, thus prone to errors.
+  FAILSAFE_ON = False:
+    Automatically turns on loiter if bad behavior in the takeoff method is found
+    Takeoff is not part of the APM missions, thus prone to errors.
+    If the failsafe is off, it will provide a warning message only! If takeoff fails, fixing depends on an RC controller.
+    It is advised to keep this option on
+    In either case, full control of the drone can be taken at any time.
+  DEFAULT_ALT = 2:
+    The default vehicle mission waypoint altitude if no altitude is provided.
+  ARM_FAIL_NUMBER = 10:
+    The amount of seconds the vehicle is given to arm itself.
+    The arm will timeout and quit its mission if this time is exceeded.
+    The vehicle can be armed manually during this period of time.
+  DO_PRE_ARM = False:
+    Whether the vehicle should do a pre-arm check before the arm.
+    Pre-arm checks for 'ekf-ok', gps fix and vehicle mode (not 'INITIALISING')
+    It is recommended to have this option on at all times.
+    Arming (and the mission) will be canceled if pre-arm does not pass.
+  PRE_ARM_WAIT = 20:
+    The amount of seconds the server waits for a good Pre-arm reading.
+    This time should be left longer, as it often takes more time for the check to complete.
+    This is especially true when the vehicle has been turned on recently ('INITIALISING')
+  RC_WAIT_TIMEOUT = 30:
+    The amount of time in seconds the server waits for a user manual RC input.
+  AUTO_GUIDED = False:
+    Whether the vehicle should automatically switch to GUIDED or not.
+    GUIDED is a necessary mode when taking off.
+    If this setting is on, the vehicle will automatically try switching to GUIDED mode in order to take off.
+    If this setting is off, the vehicle will wait for RC_WAIT_TIMEOUT amount of seconds for a user to manually switch GUIDED mode on.

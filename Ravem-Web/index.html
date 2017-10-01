@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Regius Avem</title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izimodal/1.4.2/css/iziModal.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.1.1/css/iziToast.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/video.js/6.0.0/alt/video-js-cdn.min.css" />
+	<link rel="stylesheet" href="styles/hud.css">
+	<link rel="stylesheet" href="styles/main.css">
+	
+	
+	<link href="http://vjs.zencdn.net/5.19.2/video-js.css" rel="stylesheet">
+	<!-- If you'd like to support IE8 -->
+	<script src="http://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
+</head>
+<body>
+
+	<div class="container-fluid" style="padding: 0;">
+		<div class="row">
+			<div class="col-md-6 stream-container" style="padding: 0;">
+				<div id="control_map" style="height: 59vh;"></div>
+			</div>
+
+			<div class="col-md-6" style="padding: 0;">
+
+				
+				<iframe class="stream-iframe" style="width:100%; height:390px;position:absolute;border:0;" src="http://192.168.1.69/stream/"></iframe>
+				
+				<div id="hub" style="height: 390px;"></div>
+
+				
+			</div>
+		</div>
+
+		<div class="row">
+
+			<div class="col-md-4">
+
+				<div class="box">
+
+					<div class="input-group mb-2 mr-sm-2 mb-sm-0">
+						<div class="input-group-addon">Take off</div>
+						<input type="text" class="form-control" id="takeoff_altitude" name="takeoff_altitude" placeholder="5 meters">
+						<button id="add_mission_takeoff" class="btn btn-default custom-btn">Add</button>
+					</div>
+
+					<div class="input-group mb-2 mr-sm-2 mb-sm-0" style="margin-top: 5px;">
+						<div class="input-group-addon">Change altitude</div>
+						<input type="text" class="form-control" id="change_altitude" name="change_altitude" placeholder="5 meters">
+						<button id="add_mission_change_alt" class="btn btn-default custom-btn">Add</button>
+					</div>
+
+					<button id="mission_land" style="margin-top: 5px;" class="btn btn-block btn-default custom-btn-1">Land</button>
+					<button id="add_mission_rtl" style="margin-top: 5px;" class="btn btn-block btn-default custom-btn-1">Return to launch</button>
+
+					<div class="btn-group" style="width: 100%; margin-top: 5px;" data-toggle="buttons">
+						<button id="upload_button" style="width: 50%; border-right: 2px dashed #ECEFF1;" class="btn btn-default custom-btn-1">Upload</button>
+						<button id="clear_missions" style="width: 50%" class="btn btn-default custom-btn-1">Clear missions</button>
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="col-md-4">
+
+				<div class="box">
+
+					<div class="alert alert-dark" role="alert">
+						<strong>LATITUDE</strong> <span style="float: right;"><span id="info_lat">0.00000</span> °</span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>LONGITUDE</strong> <span style="float: right;"><span id="info_lng">0.00000</span> °</span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>ALTITUDE</strong> <span style="float: right;"><span id="info_alt">0.00</span> m</span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>A/G SPEED</strong> <span style="float: right;"><span id="info_speed_air">0.00</span> / <span id="info_speed_ground">0.00</span> m/s</span></span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>VELOCITY X/Y/Z</strong> <span style="float: right;"><span id="info_speed_x">0.00</span>/<span id="info_speed_y">0.00</span>/<span id="info_speed_z">0.00</span> m/s</span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>MODE</strong> <span style="float: right;"><span id="info_mode">AUTO</span> </span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>STATUS</strong> <span style="float: right;"><span id="info_armed">DISARMED</span> </span>
+					</div>
+
+					<div class="alert alert-dark" role="alert">
+						<strong>BATTERY</strong> <span style="float: right;"><span id="info_battery">0.00</span>V <span id="info_battery_per">0</span>%</span>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="col-md-4">
+
+				<div class="box" style="height: calc(100% - 10px);">
+
+				<ul class="nav nav-pills nav-fill" role="tablist">
+					<li class="nav-item">
+						<a class="nav-link active" href="#missions" role="tab" data-toggle="tab">Missions</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#logs" role="tab" data-toggle="tab">
+							Logs
+							<span id="clear_logs" style="color: #F44336; cursor: pointer;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+						</a>
+					</li>
+				</ul>
+
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="missions">
+						<div id="path_points_tab" style="overflow-y: auto; height: 200px;">
+							<div id="point_moving_arrows_template" style="display:none;">
+								<div class="moving_arrows" style='width: 38px; float: left;'>
+									<span class="arrow" move="up"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i></span>
+									<span class="arrow" move="down"><i class="fa fa-arrow-circle-down" aria-hidden="true"></i></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane " id="logs">
+						<div id="logs_tab" style="overflow-y: auto; height: 200px;">
+							<div class="logs_tab_inner">
+								<ul class="logs_data" data-field="logs"></ul>
+							</div>
+						</div>
+					</div>
+				</div>
+		</div>
+
+		</div>
+
+	</div>
+
+	<a class="settings" id="settings">
+		<i class="fa fa-cog" aria-hidden="true"></i>
+	</a>
+
+	<div id="modal">
+		<ul class="nav nav-tabs nav-fill" role="tablist" id="modal-nav">
+			<li class="nav-item">
+				<a class="nav-link active" href="#com" role="tab" data-toggle="tab">Commands</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="#set" role="tab" data-toggle="tab">Settings</a>
+			</li>
+		</ul>
+
+		<div class="tab-content">
+			<div role="tabpanel" class="tab-pane active" id="com">
+				<button id="force_land" class="btn btn-default custom-btn-2">Force Land</button>
+				<button id="force_rtl" class="btn btn-default custom-btn-2">Force RTL</button>
+				<button id="force_auto_mode" class="btn btn-default custom-btn-2">Set Auto Mode</button>
+				<button id="force_guided_mode" class="btn btn-default custom-btn-2">Set Guided Mode</button>
+				<button id="force_loiter" class="btn btn-default custom-btn-2">Force Loiter</button>
+				<br>
+				<div class="btn-group" style="width: 100%;" data-toggle="buttons">
+					<button id="connect" class="btn btn-default custom-btn-2 upload"></button>
+					<button id="arm" class="btn btn-default custom-btn-2 arm">Arm</button>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="set" style="background-color:#37474F;padding-bottom:5px;">
+				<div id="settings"></div>
+				<button id="reset_settings" style="margin-top: 5px;width:50%;border-right: 2px dashed #ECEFF1;float:left;" class="btn btn-block btn-default custom-btn-1 no-border-radius" data-izimodal-close>Reset</button>
+				<button id="update_settings" style="margin-top: 5px;width:50%;" class="btn btn-block btn-default custom-btn-1 no-border-radius" data-izimodal-close>Update</button>
+			</div>
+		</div>
+	</div>
+
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/izimodal/1.4.2/js/iziModal.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.1.1/js/iziToast.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/6.0.0/video.min.js"></script>
+
+	<script src="js/functions.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/connection.js"></script>
+	<script src="js/main.js"></script>
+	<script src="js/compass.js"></script>
+	<script src="js/horizon.js"></script>
+	
+	<script src="http://vjs.zencdn.net/5.19.2/video.js"></script>
+</body>
+</html>
